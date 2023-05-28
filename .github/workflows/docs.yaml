@@ -1,0 +1,29 @@
+---
+name: Documentation
+on:
+  workflow_run:
+    workflows: [Build]
+    types: [completed]
+    branches: [master]
+permissions:
+  contents: write
+jobs:
+  docs:
+    runs-on: ubuntu-22.04
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install doxygen
+      - name: Checkout sources
+        uses: actions/checkout@v3
+      - name: Build documentation
+        run: doxygen
+      - name: Upload documentation
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/html
